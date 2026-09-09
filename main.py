@@ -3,7 +3,6 @@ from threading import Thread
 import discord
 from discord.ext import commands
 import requests
-import asyncio
 import os
 
 # 1. Render'ın uyutmaması için mini web sunucusu
@@ -61,57 +60,32 @@ async def on_message(message):
 
         # Sayı (App ID) kontrolü
         if not app_id.isdigit():
-            uyari = await message.channel.send(f"{message.author.mention} ❌ Lütfen sadece geçerli bir Steam App ID (sayı) girin!")
-            await asyncio.sleep(4)
-            try:
-                await message.delete()
-                await uyari.delete()
-            except:
-                pass
+            await message.channel.send(f"{message.author.mention} ❌ Lütfen sadece geçerli bir Steam App ID (sayı) girin!")
             return
 
         # Daha önce istenmiş mi kontrolü
         if app_id in oyun_istekleri:
-            uyari = await message.channel.send(f"{message.author.mention} ❌ Bu oyun zaten istek listemizde veya uygulamamızda var!")
-            await asyncio.sleep(4)
-            try:
-                await message.delete()
-                await uyari.delete()
-            except:
-                pass
+            await message.channel.send(f"{message.author.mention} ❌ Bu oyun zaten istek listemizde veya uygulamamızda var!")
             return
 
         # Steam'den oyun adını çek
         oyun_adi = steam_oyun_adi_getir(app_id)
         if not oyun_adi:
-            uyari = await message.channel.send(f"{message.author.mention} ❌ Bu App ID ile eşleşen bir Steam oyunu bulunamadı!")
-            await asyncio.sleep(4)
-            try:
-                await message.delete()
-                await uyari.delete()
-            except:
-                pass
+            await message.channel.send(f"{message.author.mention} ❌ Bu App ID ile eşleşen bir Steam oyunu bulunamadı!")
             return
 
         # Listeye ekle (aynı ID tekrar atılmasın diye)
         oyun_istekleri.add(app_id)
 
-        # Kullanıcıya bilgi ver (✅ bas ve mesaj gönder)
+        # Kullanıcıya bilgi ver (Hiçbir mesaj silinmez, her şey kalır)
         await message.add_reaction("✅")
-        cevap = await message.channel.send(f"{message.author.mention} İstek oyununuz yetkililere yönlendirildi!")
+        await message.channel.send(f"{message.author.mention} İstek oyununuz yetkililere yönlendirildi!")
         
         # Sadece yetkililerin/YT'lerin göreceği kanala rapor düş
         yetkili_kanal = bot.get_channel(YETKILI_LOG_ID)
         if yetkili_kanal:
             await yetkili_kanal.send(f"🎮 **Yeni Oyun İsteği!**\n🔹 **Oyun:** {oyun_adi}\n👤 **İsteyen:** {message.author.mention}\n🔗 **Steam:** https://store.steampowered.com/app/{app_id}")
 
-        # Kullanıcının gönderdiği App ID mesajını ve botun "yönlendirildi" mesajını temizle (isteğe bağlı, ortalık temiz dursun diye)
-        await asyncio.sleep(5)
-        try:
-            await message.delete()
-            await cevap.delete()
-        except:
-            pass
         return
 
     await bot.process_commands(message)
