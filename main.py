@@ -90,6 +90,26 @@ async def on_message(message):
 
     await bot.process_commands(message)
 
-# 3. Web sunucusunu başlat ve botu çalıştır
-keep_alive()
-bot.run(os.getenv("BOT_TOKEN"))
+# Sadece yetkililerin/YT'lerin göreceği kanala rapor düş
+        yetkili_kanal = bot.get_channel(YETKILI_LOG_ID)
+        if yetkili_kanal:
+            await yetkili_kanal.send(f"🎮 **Yeni Oyun İsteği!**\n🔹 **Oyun:** {oyun_adi}\n👤 **İsteyen:** {message.author.mention}\n🔗 **Steam:** https://store.steampowered.com/app/{app_id}")
+
+        return
+
+    await bot.process_commands(message)
+
+# ==========================================
+# DOSYANIN EN ALTINDAKİ ESKİ KISMI SİL VE BURAYI EKLE:
+# ==========================================
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8080))
+    
+    def run_flask():
+        app.run(host='0.0.0.0', port=port)
+        
+    t = Thread(target=run_flask)
+    t.daemon = True
+    t.start()
+    
+    bot.run(os.getenv("BOT_TOKEN"))
